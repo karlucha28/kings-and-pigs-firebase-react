@@ -1,4 +1,5 @@
 import { React, useRef, useEffect} from 'react';
+import gsap from 'gsap'
 
 
 import {
@@ -20,6 +21,11 @@ import hills from './ImagesGame/hills.png';
 import platformSmallTall from './ImagesGame/platformSmallTall.png';
 import block from './ImagesGame/block.png';
 import blockTri from './ImagesGame/blockTri.png';
+import mdPlatform from './ImagesGame/mdPlatform.png';
+import lgPlatform from './ImagesGame/lgPlatform.png';
+import tPlatform from './ImagesGame/tPlatform.png';
+import xtPlatform from './ImagesGame/xtPlatform.png';
+import flagPoleSprite from './ImagesGame/flagPole.png';
 
 import spriteFireFlower from './ImagesGame/spriteFireFlower.png';
 
@@ -46,10 +52,9 @@ import spriteFireFlowerJumpLeft from './ImagesGame/spriteFireFlowerJumpLeft.png'
 import spriteGoomba from './ImagesGame/spriteGoomba.png';
 import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
 
-// console.log(platform)
-
-
-
+//Audio from audio.js
+import {audioFireFlowerShotAudio} from './audio.js';
+audioFireFlowerShotAudio.play()
 
 
 
@@ -79,7 +84,7 @@ function Game() {
     // console.log(c)
     
     //gravity of player
-    const gravity = 1
+    let gravity = 1
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PLAYER~~~~CLASS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     class Player {
@@ -243,6 +248,7 @@ function Game() {
             // c.fillStyle = 'blue'
             // c.fillRect(this.position.x, this.position.y, this.width, this.height)
             if(this.text){
+            c.font = "30px Arial"
             c.fillStyle = 'red'
             c.fillText(this.text, this.position.x, this.position.y)
             }
@@ -430,7 +436,8 @@ function Game() {
             velocity,
             radius, 
             color = 'red', 
-            fireball = false
+            fireball = false,
+            fades = false
         }) {
             this.position = {
                 x: position.x,
@@ -446,9 +453,13 @@ function Game() {
             this.ttl = 300
             this.color = color
             this.fireball = fireball
+            this.opacity = 1
+            this.fades = fades
         }
 
         draw() {
+            c.save()
+            c.globalAlpha = this.opacity
             c.beginPath()
             c.arc(this.position.x, this.position.y, this.radius, 0,
                 Math.PI * 2, false)
@@ -456,6 +467,7 @@ function Game() {
             c.fillStyle = this.color
             c.fill()
             c.closePath()
+            c.restore()
 
 
         }
@@ -469,6 +481,13 @@ function Game() {
               //velocity of gravity
               if (this.position.y + this.radius + this.velocity.y <= canvas.height)
               this.velocity.y += gravity * 0.2
+
+
+              if (this.fades && this.opacity > 0) {
+                this.opacity -= 0.01
+              }
+
+              if (this.opacity < 0) this.opacity = 0
         }
     }
 
@@ -484,6 +503,12 @@ function Game() {
     let platformImage   //= createImage(platform) //I am doing asunc
     let platformSmallTallImage   //= createImage(platformSmallTall) //I am doing asunc
     let blockTriImage
+    let lgPlatformImage 
+    let tPlatformImage
+    let xtPlatformImage
+    let blockImage
+    
+
     let platforms = []
     let fireFlowers =[]
 
@@ -498,18 +523,42 @@ function Game() {
 
     let scrollOffset = 0
 
+    let flagPole 
+    let flagPoleImage
+    let game = {
+        disableUserInput: false
+    }
+    //  //win condition
+    //  if (platformImage && scrollOffset + 400 + player.width> 7200) {
+    //     console.log("you win")
+    // }
+
 
 
   
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~INIT~~~FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     async function init() {
-     
+     game = {
+        disableUserInput: false
+    }
     //~~~~~~~~~~~~~~~~~~~~~ARRAY OF ALL PLATFORMS~~~~~~~~~~~~REEEEEENDERING~~~~~~~~~~~~~~~~~
     //async images rendering
      platformImage = await createImageAsync(platform)
      platformSmallTallImage = await createImageAsync(platformSmallTall)
      blockTriImage = await createImageAsync(blockTri)
+     blockImage = await createImageAsync(block)
+     lgPlatformImage = await createImageAsync(lgPlatform)
+     tPlatformImage = await createImageAsync(tPlatform)
+     xtPlatformImage = await createImageAsync(xtPlatform)
+     flagPoleImage = await createImageAsync(flagPoleSprite)
+
     //  console.log(platformImage.width)
+    //image of the flag
+    flagPole = new GenericObject({
+        x: 7700,
+        y: canvas.height - lgPlatformImage.height - flagPoleImage.height,
+        image: flagPoleImage
+    })
 
     //  createImageAsync(platform).then((platformImage) => {     })  //cleaner 
         //create fireFlowers
@@ -528,7 +577,7 @@ function Game() {
         //create goombas
         goombas = [new Goomba({
             position: {
-            x: 800,
+            x: 908 + lgPlatformImage.width - 43,
             y: 100
         },
         velocity: {
@@ -536,7 +585,49 @@ function Game() {
             y: 0,
         },
         distance: {
-            limit: 300,
+            limit: 400,
+            traveled: 0
+        }
+        }),
+        new Goomba({
+            position: {
+            x: 3249 + lgPlatformImage.width - 43*2,
+            y: 100
+        },
+        velocity: {
+            x: -0.3,
+            y: 0,
+        },
+        distance: {
+            limit: 400,
+            traveled: 0
+        }
+        }),
+        new Goomba({
+            position: {
+            x: 3249 + lgPlatformImage.width - 43*3,
+            y: 100
+        },
+        velocity: {
+            x: -0.3,
+            y: 0,
+        },
+        distance: {
+            limit: 400,
+            traveled: 0
+        }
+        }),
+        new Goomba({
+            position: {
+            x: 3249 + lgPlatformImage.width - 43*4,
+            y: 100
+        },
+        velocity: {
+            x: -0.3,
+            y: 0,
+        },
+        distance: {
+            limit: 400,
             traveled: 0
         }
         }),
@@ -553,59 +644,158 @@ function Game() {
             limit: 100,
             traveled: 0
         }
+        }),
+        new Goomba({
+            position: {
+            x: 4960 + xtPlatformImage.width/2 + 43,
+            y: 100
+        },
+        velocity: {
+            x: -0.3,
+            y: 0,
+        },
+        distance: {
+            limit: 100,
+            traveled: 0
+        }
+        }),
+        new Goomba({
+            position: {
+            x: 5537 + xtPlatformImage.width + 175 *2,
+            y: 100
+        },
+        velocity: {
+            x: -0.3,
+            y: 0,
+        },
+        distance: {
+            limit: 10,
+            traveled: 0
+        }
+        }),
+        new Goomba({
+            position: {
+            x: 5537 + xtPlatformImage.width + 175,
+            y: 100
+        },
+        velocity: {
+            x: -0.3,
+            y: 0,
+        },
+        distance: {
+            limit: 10,
+            traveled: 0
+        }
+        }),
+        new Goomba({
+            position: {
+            x: 5537 + xtPlatformImage.width + 175 *7 + blockTriImage.width,
+            y: 100
+        },
+        velocity: {
+            x: -0.3,
+            y: 0,
+        },
+        distance: {
+            limit: 100,
+            traveled: 0
+        }
         })
     ]
 
     
 
     particles = []
-//create platforms
-     platforms = [new Platform({
-        x: 0,
-         y:470,
-         image: platformImage
-    }),
-    new Platform({
-        x: platformImage.width -2,
-         y:470,
-          image: platformImage }),
+// platforms in the air
+     platforms = [
+        new Platform({
+           x: 909 +100,
+           y: 300,
+           image: blockTriImage,
+           block: true 
+        }),
+        new Platform({
+            x: 909 +100 + blockImage.width,
+            y: 100,
+            image: blockImage,
+            block: true 
+         }),
          new Platform({
-        x: platformImage.width*2 +100,
-         y:470,
-          image: platformImage }),
+             x: 1991 + lgPlatformImage.width - tPlatformImage.width,
+             y: canvas.height - lgPlatformImage.height - tPlatformImage.height,
+             image: tPlatformImage,
+             block: false
+          })
+          ,
+         new Platform({
+             x: 1891 + lgPlatformImage.width - tPlatformImage.width,
+             y: canvas.height - lgPlatformImage.height - tPlatformImage.height + blockImage.height,
+             image: blockImage,
+             block: true
+          }),
           new Platform({
-         x: platformImage.width*3 +300,
-          y:470,
-           image: platformImage }),
+              x: 5300,
+              y: canvas.height - lgPlatformImage.height - tPlatformImage.height - blockImage.height*5,
+              image: blockImage,
+              block: true
+           }),
            new Platform({
-          x: platformImage.width*4 +400,
-           y:370,
-            image: platformSmallTallImage }),
+               x: 5537 + xtPlatformImage.width + 175,
+               y: canvas.height - xtPlatformImage.height,
+               image: blockImage,
+               block: true
+            }),
             new Platform({
-             x: platformImage.width*5 +200,
-             y:270,
-            image: platformImage }),
-            new Platform({
-           x: platformImage.width*6 +400,
-            y:270,
-             image: platformSmallTallImage,
-             block:true }),
-            new Platform({
-           x: platformImage.width*6 +300,
-            y:470,
-             image: platformImage,
-            //  text: 'here'
+                x: 5537 + xtPlatformImage.width + 175 *2,
+                y: canvas.height - xtPlatformImage.height + 100,
+                image: blockImage,
+                block: true
              }),
              new Platform({
-            x: platformImage.width,
-             y:270,
-              image: blockTriImage,
-            block:true}),
-            new Platform({
-           x: platformImage.width * 3 -300,
-            y:170,
-             image: blockTriImage,
-           block:true})]
+                 x: 5537 + xtPlatformImage.width + 175 *2.5,
+                 y: canvas.height - xtPlatformImage.height - 50,
+                 image: blockImage,
+                 block: true
+              }),
+             new Platform({
+                 x: 5537 + xtPlatformImage.width + 175 *3,
+                 y: canvas.height - xtPlatformImage.height - 150,
+                 image: blockImage,
+                 block: true
+              })
+              ,
+             new Platform({
+                 x: 5537 + xtPlatformImage.width + 175 *4,
+                 y: canvas.height - xtPlatformImage.height - 250,
+                 image: blockImage,
+                 block: true
+              }),
+              new Platform({
+                  x: 5537 + xtPlatformImage.width + 175 *6,
+                  y: canvas.height - xtPlatformImage.height + 250,
+                  image: blockImage,
+                  block: true
+               }),
+               new Platform({
+                   x: 5537 + xtPlatformImage.width + 175 *7,
+                   y: canvas.height - xtPlatformImage.height + 200,
+                   image: blockTriImage,
+                   block: true
+                }),
+                new Platform({
+                    x: 5537 + xtPlatformImage.width + 175 *7 + blockTriImage.width,
+                    y: canvas.height - xtPlatformImage.height + 200,
+                    image: blockTriImage,
+                    block: true
+                 }),
+                 new Platform({
+                     x: 5537 + xtPlatformImage.width + 175 *7 + blockTriImage.width + 400,
+                     y: canvas.height - lgPlatformImage.height,
+                     image: lgPlatformImage,
+                     block: true
+                  })
+         
+     ]
 
     //~~~~~~~~~~~~~~~~~~~~~~~~GENERIC~~~OBJECTS~~~~~~~~~~~~REEEEEEEENDERIN~~~~~~~~~~~~~~~~~~~~~~~~
      genericObjects = [
@@ -622,6 +812,66 @@ function Game() {
     ]
 
     scrollOffset = 0
+
+    //platforms generator
+    const platformsMap = ['lg', 'lg', 'gap', 'lg', 'gap',  'lg', 'gap', 't', 'gap', 'xt', 'gap', 'xt','gap', 'gap', 'xt']
+
+
+    let platformDistance = 0
+
+    platformsMap.forEach(symbol => {
+        switch(symbol) {
+            case 'lg':
+                platforms.push(new Platform({
+                    x: platformDistance,
+                    y: canvas.height - lgPlatformImage.height,
+                    image: lgPlatformImage,
+                    block: true,
+                    text: platformDistance
+
+                }))
+
+
+                platformDistance += (lgPlatformImage.width -2)
+
+
+            break
+
+
+            case 'gap': 
+            platformDistance += 175
+
+
+            break;
+
+            case 't':
+                platforms.push(new Platform({
+                    x: platformDistance,
+                    y: canvas.height - tPlatformImage.height,
+                    image: tPlatformImage,
+                    block: true
+
+                }))
+
+                platformDistance += (tPlatformImage.width -2)
+
+            break;
+
+            case 'xt':
+                platforms.push(new Platform({
+                    x: platformDistance,
+                    y: canvas.height - xtPlatformImage.height,
+                    image: xtPlatformImage,
+                    block: true,
+                    text: platformDistance
+
+                }))
+
+                platformDistance += (xtPlatformImage.width -2)
+
+            break;
+        }
+    })
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~INIT~~~FUNCTION~~~~~END~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -652,12 +902,99 @@ function Game() {
             genericObject.update()
             genericObject.velocity.x = 0
         })
+
+
+        //rendering of particles
+        particles.forEach((particle, i) => {
+            particle.update()
+
+            if (particle.fireball 
+                    && 
+                (particle.position.x - particle.radius >= canvas.width || particle.position.x + particle.radius <= 0)) 
+            setTimeout(() => {
+                particles.splice(i, 1)
+            }, 0)
+        })
+
        
         //~~~~~~~~draw all platforms~~~~~~~
         platforms.forEach(platform => {
             platform.update()
             platform.velocity.x = 0
         })
+
+
+        //~~~~~~~~~~~draw flag~~~~~~~~~~~~~~
+        if (flagPole){
+            flagPole.update()
+            flagPole.velocity.x = 0
+            //~~~mario touches flag
+             
+            if (
+                !game.disableUserInput &&
+                objectsTouch({
+                object1: player,
+                object2: flagPole
+            }))
+            {   
+                //disable any activity of player + animation in the gsap library
+                game.disableUserInput = true
+                player.velocity.x = 0
+                player.velocity.y = 0
+                gravity = 0
+
+                player.currentSprite = player.sprites.stand.right
+
+                if(player.powerUps.fireFlower)
+                     player.currentSprite = player.sprites.stand.fireFlower.right
+
+                gsap.to(player.position, {
+                    y: canvas.height - lgPlatformImage.height - player.height,
+                    duration: 1,
+                    onComplete(){
+                        player.currentSprite = player.sprites.run.right
+
+                        if(player.powerUps.fireFlower)
+                            player.currentSprite = player.sprites.run.fireFlower.right
+                    }
+                })
+                gsap.to(player.position, {
+                    delay: 1,
+                    x: canvas.width,
+                    duration: 2,
+                    ease: 'power1.in'
+                })
+
+                //fireworks~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~FIREWORKS LOGIC~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+                const particleCount = 300
+                const radians = (Math.PI * 2) / particleCount
+                const power = 8
+                let increment = 1
+
+                const intervalId = setInterval(() => {
+                    for (let i = 0; i < particleCount; i++) {
+                        particles.push(
+                            new Particle({
+                            position: {
+                                x: canvas.width/4 * increment,
+                                y: canvas.height/2
+                            },
+                            velocity: {
+                                x: Math.cos(radians * i) * power * Math.random(),
+                                y: Math.sin(radians * i) * power * Math.random()
+                            },
+                            radius: 2 *Math.random(),
+                            color: `hsl(${Math.random()*200}, 50%, 50%)`,
+                            fades: true
+                        }))
+                    }
+                    if (increment === 3) clearInterval(intervalId)
+                    increment++
+                }, 1000)
+               
+            }
+        }
+        
 
         //~~~~~~~~~~~~draw all flowers~~~~~~~~~~
         fireFlowers.forEach((fireFlower, i) => {
@@ -759,21 +1096,12 @@ function Game() {
            else if (!player.invincible) init()
         })
 
-//rendering of particles
-        particles.forEach((particle, i) => {
-            particle.update()
-
-            if (particle.fireball 
-                    && 
-                (particle.position.x - particle.radius >= canvas.width || particle.position.x + particle.radius <= 0)) 
-            setTimeout(() => {
-                particles.splice(i, 1)
-            }, 0)
-        })
 
         player.update()
+
+        if (game.disableUserInput) return
         
-        
+        // scrolling code starts
         
         //~~~~~~~~~~~~~~~horizontal velocity~~~~~~~~~~~~~~~~~~~
         let hitSide = false;
@@ -785,7 +1113,7 @@ function Game() {
             player.velocity.x = 0
             
 
-            //~~~~~~~~~~~~~platform scroling on back plus PARALAX EFFECT~~~~~~~~~~~
+            //~~~~~~~~~~~~~platform scroling on back plus PARALAX EFFECT~~~~~~~~~~~e
             if (keys.right.pressed) {
                 
 
@@ -815,6 +1143,11 @@ function Game() {
 
                 //win scenario calculation
                 scrollOffset += player.speed
+
+                //scrolling flag
+                flagPole.velocity.x = -player.speed
+
+
                 //~speed of feneric Objects~~to~the~~right~Button~
                 genericObjects.forEach(genericObject  => {
                     genericObject.velocity.x = -player.speed*.6
@@ -862,6 +1195,10 @@ function Game() {
 
                     //win scenario calculation
                 scrollOffset -= player.speed
+
+
+                //scrolling flag
+                flagPole.velocity.x = player.speed
 
                 //~speed of feneric Objects~to~the~left~Button~
                 genericObjects.forEach(genericObject  => {
@@ -962,10 +1299,7 @@ function Game() {
 
        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~CONDITIONS~~~FOR~~~RUNNUNGS~~AND~~~STANDINGS~~~~~~~~~~~~~~~~~~~
 
-         //win condition
-         if (platformImage && scrollOffset > platformImage.width*6 +600) {
-            console.log("you win")
-        }
+       
 
         //lose condition
         if (player.position.y > canvas.height){
@@ -1032,7 +1366,7 @@ function Game() {
 
     animate()
     window.addEventListener('keyup', (event) => {
-       
+       if (game.disableUserInput) return
         switch (event.keyCode){
                  case 65:
                     //  console.log("left")
@@ -1063,7 +1397,7 @@ function Game() {
     })
 
     window.addEventListener('keydown', (event) => {
-       
+        if (game.disableUserInput) return
         switch (event.keyCode){
                  case 65:
                     //  console.log("left")
@@ -1103,7 +1437,7 @@ function Game() {
 
                 case 32:
                     // console.log("space")
-                    //fireballs
+                    //fireballsdddd
                     if(!player.powerUps.fireFlower) return
                     let velocity = 15
                     if (lastKey === 'left') velocity = -velocity
