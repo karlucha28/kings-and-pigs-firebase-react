@@ -29,10 +29,10 @@ import flagPoleSprite from './ImagesGame/flagPole.png';
 
 import spriteFireFlower from './ImagesGame/spriteFireFlower.png';
 
-// import spriteRunLeft from './ImagesGame/spriteRunLeft.png';
-// import spriteRunRight from './ImagesGame/spriteRunRight.png';
-// import spriteStandLeft from './ImagesGame/spriteStandLeft.png';
-// import spriteStandRight from './ImagesGame/spriteStandRight.png';
+import spriteRunLeft from './ImagesGame/spriteRunLeft.png';
+import spriteRunRight from './ImagesGame/spriteRunRight.png';
+import spriteStandLeft from './ImagesGame/spriteStandLeft.png';
+import spriteStandRight from './ImagesGame/spriteStandRight.png';
 //regular Mario
 import spriteMarioRunLeft from './ImagesGame/spriteMarioRunLeft.png';
 import spriteMarioRunRight from './ImagesGame/spriteMarioRunRight.png';
@@ -49,12 +49,21 @@ import spriteFireFlowerStandLeft from './ImagesGame/spriteFireFlowerStandLeft.pn
 import spriteFireFlowerJumpRight from './ImagesGame/spriteFireFlowerJumpRight.png';
 import spriteFireFlowerJumpLeft from './ImagesGame/spriteFireFlowerJumpLeft.png';
 
+
 import spriteGoomba from './ImagesGame/spriteGoomba.png';
 import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
 
 //Audio from audio.js
-import {audioFireFlowerShotAudio} from './audio.js';
-audioFireFlowerShotAudio.play()
+import {audio} from './audio.js';
+
+//images level 2+
+
+import {images} from './images.js';
+
+
+
+
+
 
 
 
@@ -89,6 +98,7 @@ function Game() {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PLAYER~~~~CLASS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     class Player {
         constructor() {
+            this.shooting = false
             this.speed = 5
             this.position = {
                 x: 100,
@@ -104,7 +114,7 @@ function Game() {
             this.height = 353 * this.scale
 
             //image of my character
-            this.image = createImage(spriteMarioStandRight)
+            this.image = createImage(spriteStandRight)
             this.frames = 0
 
 
@@ -125,7 +135,8 @@ function Game() {
                 fireFlower: {
                     right: createImage(spriteFireFlowerRunRight),
                     left: createImage(spriteFireFlowerRunLeft)
-                },
+                }
+                ,
                 cropWidth: 398,
                 width: 398 * this.scale
             },
@@ -135,9 +146,16 @@ function Game() {
                 fireFlower: {
                     right: createImage(spriteFireFlowerJumpRight),
                     left: createImage(spriteFireFlowerJumpLeft)
-                },
+                }
+                ,
                 cropWidth: 398,
                 width: 398 * this.scale
+            },
+            shoot: {
+                fireFlower: {
+                    right: createImage(images.player.shoot.fireFlower.right),
+                    left: createImage(images.player.shoot.fireFlower.left),
+                }
             }
         }
             this.currentSprite = this.sprites.stand.right
@@ -147,6 +165,7 @@ function Game() {
                 fireFlower: false
         }
         this.invincible = false
+        this.opacity = 1
 
     }
 
@@ -197,6 +216,8 @@ function Game() {
                 || currentSprite === sprites.jump.left
                 || currentSprite === sprites.jump.fireFlower.right 
                 || currentSprite === sprites.jump.fireFlower.left
+                || currentSprite === sprites.shoot.fireFlower.left
+                || currentSprite === sprites.shoot.fireFlower.right
                 ) this.frames = 0
             this.draw()
             //updaty y coordinate
@@ -525,19 +546,57 @@ function Game() {
 
     let flagPole 
     let flagPoleImage
-    let game = {
-        disableUserInput: false
-    }
-    //  //win condition
+    let game 
+
+   
+    
     //  if (platformImage && scrollOffset + 400 + player.width> 7200) {
     //     console.log("you win")
     // }
 
+    
+    //checks if the keys are prssed
+    let keys 
+
+    let currentLevel = 1
+
+    function selectLevel(currentLevel) {
+        if (!audio.musicLevel1.playing()) audio.musicLevel1.play()
+        switch(currentLevel){
+            case 1:
+                init()
+            break
+            case 2:
+                initLevel2()
+            break
+        }
+    }
+
 
 
   
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~INIT~~~FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~INIT~~~FUNCTION~~ OF LEVEL 1~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     async function init() {
+
+
+        player = new Player()
+
+        keys = {
+            right: {
+                pressed: false
+            },
+            left: {
+                pressed: false
+            }
+    
+        }
+
+
+        scrollOffset = 0
+
+
+
+
      game = {
         disableUserInput: false
     }
@@ -838,6 +897,7 @@ function Game() {
             break
 
 
+
             case 'gap': 
             platformDistance += 175
 
@@ -873,25 +933,337 @@ function Game() {
         }
     })
     }
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~INIT~~~FUNCTION~~~~~END~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+///~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~LEVEL 2 INIT FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    async function initLevel2() {
 
 
+        player = new Player()
 
-    //checks if the keys are prssed
-    const keys = {
-        right: {
-            pressed: false
-        },
-        left: {
-            pressed: false
+        keys = {
+            right: {
+                pressed: false
+            },
+            left: {
+                pressed: false
+            }
+    
         }
 
+
+        scrollOffset = 0
+
+
+
+
+     game = {
+        disableUserInput: false
     }
+    //~~~~~~~~~~~~~~~~~~~~~ARRAY OF ALL PLATFORMS~~~~~~~~~~~~REEEEEENDERING~~~~~~~~~~~~~~~~~
+    //async images rendering
+    //  platformImage = await createImageAsync(platform)
+    //  platformSmallTallImage = await createImageAsync(platformSmallTall)
+     blockTriImage = await createImageAsync(blockTri)
+     blockImage = await createImageAsync(block)
+     lgPlatformImage = await createImageAsync(images.levels[2].lgPlatform)
+     tPlatformImage = await createImageAsync(tPlatform)
+     xtPlatformImage = await createImageAsync(xtPlatform)
+     flagPoleImage = await createImageAsync(flagPoleSprite)
+     const mountains = await  createImageAsync(images.levels[2].mountains)
+     const mdPlatformImage = await createImageAsync(images.levels[2].mdPlatform)
+    //  console.log(platformImage.width)
+    //image of the flag
+    flagPole = new GenericObject({
+        x: 7700,
+        y: canvas.height - lgPlatformImage.height - flagPoleImage.height,
+        image: flagPoleImage
+    })
+
+    //  createImageAsync(platform).then((platformImage) => {     })  //cleaner 
+        //create fireFlowers
+        fireFlowers = [
+            new FireFlower({
+                position: {
+                  x: 4734 - 28,
+                  y: 100
+                },
+                velocity: {
+                  x: 0,
+                  y: 0
+                }
+              })
+        ]
+        //create players
+    player = new Player()
+        //create goombas
+        goombas = [
+            new Goomba({
+                // single block goomba
+                position: {
+                  x: 903 + mdPlatformImage.width - 43,
+                  y: 100
+                },
+                velocity: {
+                  x: -2,
+                  y: 0
+                },
+                distance: {
+                  limit: 700,
+                  traveled: 0
+                }
+              }),
+              new Goomba({
+                // single block goomba
+                position: {
+                  x:
+                    1878 +
+                    lgPlatformImage.width +
+                    155 +
+                    200 +
+                    200 +
+                    200 +
+                    blockImage.width / 2 -
+                    43 / 2,
+                  y: 100
+                },
+                velocity: {
+                  x: 0,
+                  y: 0
+                },
+                distance: {
+                  limit: 0,
+                  traveled: 0
+                }
+              }),
+              new Goomba({
+                position: {
+                  x: 3831 + lgPlatformImage.width - 43,
+                  y: 100
+                },
+                velocity: {
+                  x: -1,
+                  y: 0
+                },
+                distance: {
+                  limit: lgPlatformImage.width - 43,
+                  traveled: 0
+                }
+              }),
+          
+              new Goomba({
+                position: {
+                  x: 4734,
+                  y: 100
+                },
+                velocity: {
+                  x: 1,
+                  y: 0
+                },
+                distance: {
+                  limit: lgPlatformImage.width - 43,
+                  traveled: 0
+                }
+              })
+    ]
+
+    
+
+    particles = [
+    ]
+// platforms in the air
+     platforms = [
+        
+        new Platform({
+            x: 903 + mdPlatformImage.width + 115,
+            y: 300,
+            image: blockTriImage,
+            block: true
+          }),
+          new Platform({
+            x: 903 + mdPlatformImage.width + 115 + blockTriImage.width,
+            y: 300,
+            image: blockTriImage,
+            block: true
+          }),
+          new Platform({
+            x: 1878 + lgPlatformImage.width + 175,
+            y: 360,
+            image: blockImage,
+            block: true
+          }),
+          new Platform({
+            x: 1878 + lgPlatformImage.width + 155 + 200,
+            y: 300,
+            image: blockImage,
+            block: true
+          }),
+          new Platform({
+            x: 1878 + lgPlatformImage.width + 155 + 200 + 200,
+            y: 330,
+            image: blockImage,
+            block: true
+          }),
+          new Platform({
+            x: 1878 + lgPlatformImage.width + 155 + 200 + 200 + 200,
+            y: 240,
+            image: blockImage,
+            block: true
+          }),
+          new Platform({
+            x: 4734 - mdPlatformImage.width / 2,
+            y: canvas.height - lgPlatformImage.height - mdPlatformImage.height,
+            image: mdPlatformImage
+          }),
+          new Platform({
+            x: 5987,
+            y: canvas.height - lgPlatformImage.height - mdPlatformImage.height,
+            image: mdPlatformImage
+          }),
+          new Platform({
+            x: 5987,
+            y: canvas.height - lgPlatformImage.height - mdPlatformImage.height * 2,
+            image: mdPlatformImage
+          }),
+          new Platform({
+            x: 6787,
+            y: canvas.height - lgPlatformImage.height - mdPlatformImage.height,
+            image: mdPlatformImage
+          }),
+          new Platform({
+            x: 6787,
+            y: canvas.height - lgPlatformImage.height - mdPlatformImage.height * 2,
+            image: mdPlatformImage
+          }),
+          new Platform({
+            x: 6787,
+            y: canvas.height - lgPlatformImage.height - mdPlatformImage.height * 3,
+            image: mdPlatformImage
+          })
+     ]
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~GENERIC~~~OBJECTS~~~~~~~~~~~~REEEEEEEENDERIN~~~~~~~~~~~~~~~~~~~~~~~~
+     genericObjects = [
+        new GenericObject({
+            x: 0,
+            y: 0,
+            image: createImage(images.levels[2].background)
+        }),
+        new GenericObject({
+            x: 0,
+            y: canvas.height - mountains.height,
+            image: mountains
+        })
+    ]
+
+    scrollOffset = 0
+
+    //platforms generator
+    const platformsMap = [ 
+    'lg',
+    'md',
+    'gap',
+    'gap',
+    'gap',
+    'lg',
+    'gap',
+    'gap',
+    'gap',
+    'gap',
+    'gap',
+    'gap',
+    'lg',
+    'lg',
+    'gap',
+    'gap',
+    'md',
+    'gap',
+    'gap',
+    'md',
+    'gap',
+    'gap',
+    'lg']
+
+
+    let platformDistance = 0
+
+    platformsMap.forEach(symbol => {
+        switch(symbol) {
+            case 'lg':
+                platforms.push(new Platform({
+                    x: platformDistance,
+                    y: canvas.height - lgPlatformImage.height,
+                    image: lgPlatformImage,
+                    block: true,
+                    text: platformDistance
+
+                }))
+
+
+                platformDistance += (lgPlatformImage.width -3)
+
+
+            break
+
+            
+            case 'md':
+                platforms.push(
+                new Platform({
+                    x: platformDistance,
+                    y: canvas.height - mdPlatformImage.height,
+                    image: mdPlatformImage,
+                    block: true,
+                    text: platformDistance
+                })
+                )
+
+                platformDistance += mdPlatformImage.width - 3
+
+             break
+
+
+            case 'gap': 
+            platformDistance += 175
+
+
+            break;
+
+            case 't':
+                platforms.push(new Platform({
+                    x: platformDistance,
+                    y: canvas.height - tPlatformImage.height,
+                    image: tPlatformImage,
+                    block: true
+
+                }))
+
+                platformDistance += (tPlatformImage.width -2)
+
+            break;
+
+            case 'xt':
+                platforms.push(new Platform({
+                    x: platformDistance,
+                    y: canvas.height - xtPlatformImage.height,
+                    image: xtPlatformImage,
+                    block: true,
+                    text: platformDistance
+
+                }))
+
+                platformDistance += (xtPlatformImage.width -2)
+
+            break;
+        }
+    })
+    }
+
+//end of level 2
     
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ANIMATION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     init() //give init values 
+    // initLevel2()
     function animate() {
         requestAnimationFrame(animate)
         c.fillStyle = 'white'
@@ -929,6 +1301,7 @@ function Game() {
             flagPole.update()
             flagPole.velocity.x = 0
             //~~~mario touches flag
+            //  //win condition
              
             if (
                 !game.disableUserInput &&
@@ -938,6 +1311,9 @@ function Game() {
             }))
             {   
                 //disable any activity of player + animation in the gsap library
+                
+                audio.completeLevel.play() // music of complete level
+                audio.musicLevel1.stop()
                 game.disableUserInput = true
                 player.velocity.x = 0
                 player.velocity.y = 0
@@ -948,6 +1324,11 @@ function Game() {
                 if(player.powerUps.fireFlower)
                      player.currentSprite = player.sprites.stand.fireFlower.right
 
+                   
+                //flag pole slide
+                setTimeout(() => {
+                      audio.descend.play() // music of complete level
+                }, 200)
                 gsap.to(player.position, {
                     y: canvas.height - lgPlatformImage.height - player.height,
                     duration: 1,
@@ -988,10 +1369,20 @@ function Game() {
                             fades: true
                         }))
                     }
+
+                    audio.fireworkBurst.play()
+                    audio.fireworkWhistle.play()
+
                     if (increment === 3) clearInterval(intervalId)
                     increment++
                 }, 1000)
-               
+                // switch to the next level
+                setTimeout(() => {
+                    currentLevel++
+                    gravity = 1
+                    selectLevel(currentLevel)
+                }, 8000)
+            
             }
         }
         
@@ -1003,6 +1394,7 @@ function Game() {
                 object2: fireFlower
             })
             ) {
+                audio.obtainPowerUp.play()
                 player.powerUps.fireFlower = true
                 setTimeout(() => {
                     fireFlowers.splice(i, 1)
@@ -1018,40 +1410,44 @@ function Game() {
             goomba.update()
 
             //remove goomba on fireball hit 
-            particles.filter(particle => particle.fireball).forEach((particle, particleIndex) => {
+            particles.forEach((particle, particleIndex) => {
                 if (
-                    particle.position.x + particle.radius >= goomba.position.x
-                    && particle.position.y + particle.radius >= goomba.position.y
-                    && particle.position.x - particle.radius <= goomba.position.x + goomba.width
-                    && particle.position.y - particle.radius <= goomba.position.y + goomba.height
-                    ) { for (let i = 0; i < 50; i++) {
-                        particles.push(
-                            new Particle({
-                            position:{
-                                x: goomba.position.x + goomba.width/2,
-                                y: goomba.position.y + goomba.height/2,
-                            },
-                            velocity: {
-                                x: (Math.random() - 0.5) * 5, 
-                                y: (Math.random() - 0.5) * 15
-                            },
-                            radius: Math.random()*3
-                            })
-                        )
-                        }
-                   
-                setTimeout(()=> {
-                goombas.splice(index, 1) 
-                particles.splice(particleIndex, 1)  
-               }, 0)
+                  particle.fireball &&
+                  particle.position.x + particle.radius >= goomba.position.x &&
+                  particle.position.y + particle.radius >= goomba.position.y &&
+                  particle.position.x - particle.radius <=
+                    goomba.position.x + goomba.width &&
+                  particle.position.y - particle.radius <=
+                    goomba.position.y + goomba.height
+                ) {
+                  for (let i = 0; i < 50; i++) {
+                    particles.push(
+                      new Particle({
+                        position: {
+                          x: goomba.position.x + goomba.width / 2,
+                          y: goomba.position.y + goomba.height / 2
+                        },
+                        velocity: {
+                          x: (Math.random() - 0.5) * 7,
+                          y: (Math.random() - 0.5) * 15
+                        },
+                        radius: Math.random() * 3
+                      })
+                    )
+                  }
+                  setTimeout(() => {
+                    goombas.splice(index, 1)
+                    particles.splice(particleIndex, 1)
+                  }, 0)
                 }
-            } )
+              })
 
         // goomba stomp squish
             if (collisionTOp({
                 object1: player,
                 object2: goomba
             })) {
+                audio.goombaSquash.play()  // audio of goomba squish
                 //height of jump after kiling a goomba
                 player.velocity.y -= 40
                 //deleting of a goomba from the array of goombas
@@ -1083,17 +1479,23 @@ function Game() {
                 player.position.x + player.width >= goomba.position.x
                 && player.position.y + player.height >= goomba.position.y
                 && player.position.x  <= goomba.position.x + goomba.width
-            ) 
+            )  {
+                //lose fireflower / lose powerup
             if (player.powerUps.fireFlower){
                 player.invincible = true
                 player.powerUps.fireFlower = false
+                audio.losePowerUp.play()
 
                 setTimeout(() => {
                     player.invincible = false
                 }, 1000)
             }
             // player hits goomba
-           else if (!player.invincible) init()
+           else if (!player.invincible) {
+            audio.die.play()
+            selectLevel(currentLevel)
+           }
+          }
         })
 
 
@@ -1303,10 +1705,22 @@ function Game() {
 
         //lose condition
         if (player.position.y > canvas.height){
-            console.log("you lose")
-            init() //to get start values
+            audio.die.play()
+            // console.log("you lose")
+           selectLevel(currentLevel) //to get start values
         }
         //sprite switching condition
+
+        if(player.shooting) {
+            player.currentSprite = player.sprites.shoot.fireFlower.right
+
+
+            if (lastKey === "left")
+            player.currentSprite = player.sprites.shoot.fireFlower.left
+            return
+        }
+
+
         if (player.velocity.y !== 0)  return
 
         if (keys.right.pressed &&
@@ -1359,10 +1773,10 @@ function Game() {
         
          
       
-    }
+    }  //end animation loop
 
 
-
+    selectLevel(1)
 
     animate()
     window.addEventListener('keyup', (event) => {
@@ -1419,6 +1833,8 @@ function Game() {
                 case 87:
                     // console.log("up")d
                     if (player.velocity.y === 0)  player.velocity.y -= 20
+
+                    audio.jump.play()// audio of jumping
                    
 
                     if(lastKey === 'right')
@@ -1439,6 +1855,18 @@ function Game() {
                     // console.log("space")
                     //fireballsdddd
                     if(!player.powerUps.fireFlower) return
+
+                    //shooting settings 
+                    player.shooting = true
+
+
+                    setTimeout(() => {
+                        player.shooting = false
+                    }, 100)
+
+                    audio.fireFlowerShot.play()
+
+
                     let velocity = 15
                     if (lastKey === 'left') velocity = -velocity
                     particles.push(
